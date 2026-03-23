@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>SHIELD Prospector</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--s1:#13131a;--s2:#1c1c26;--s3:#23232f;
+  --b0:rgba(255,255,255,0.05);--b1:rgba(255,255,255,0.08);--b2:rgba(255,255,255,0.15);
+  --accent:#4f6ef7;--accent2:#7c3aed;--glow:rgba(79,110,247,0.2);
+  --text:#f0f0f5;--muted:#8888a0;--dim:#505060;
+  --ok:#22d3a0;--warn:#f59e0b;--err:#f43f5e;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{width:440px;min-height:180px;max-height:680px;background:var(--bg);font-family:var(--font);color:var(--text);overflow-y:auto;overflow-x:hidden;font-size:13px}
+body::-webkit-scrollbar{width:3px}
+body::-webkit-scrollbar-thumb{background:var(--b1);border-radius:2px}
+
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px 11px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:10}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-mark{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.logo-label{font-size:13px;font-weight:600;letter-spacing:.01em}
+.logo-sub{font-size:10px;color:var(--dim);margin-top:1px}
+.hdr-actions{display:flex;gap:6px}
+.btn-sm{background:none;border:1px solid var(--b1);border-radius:6px;color:var(--muted);padding:5px 9px;cursor:pointer;font-size:11px;font-family:var(--font);transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.btn-sm:hover{border-color:var(--b2);color:var(--text)}
+.btn-sm.active-btn{border-color:var(--accent);color:var(--accent)}
+
+#settings-panel{display:none;padding:13px 16px;border-bottom:1px solid var(--b1);background:var(--s1)}
+#settings-panel.open{display:block}
+.field-lbl{font-size:10px;font-weight:500;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.inp{width:100%;background:var(--bg);border:1px solid var(--b1);border-radius:7px;padding:8px 10px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;transition:border-color .15s}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--dim)}
+.save-btn{margin-top:7px;width:100%;padding:7px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;font-family:var(--font);cursor:pointer;transition:opacity .15s}
+.save-btn:hover{opacity:.85}
+
+.main{padding:14px 16px}
+
+.not-li{display:none;flex-direction:column;align-items:center;gap:8px;padding:32px 16px;text-align:center}
+.not-li.show{display:flex}
+.not-li-icon{font-size:28px}
+.not-li-t{font-size:13px;font-weight:600;color:var(--muted)}
+.not-li-s{font-size:11px;color:var(--dim);line-height:1.6;max-width:270px}
+
+.warn-box{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:9px 12px;margin-bottom:11px;display:none}
+.warn-box.show{display:block}
+.warn-t{font-size:11px;font-weight:600;color:var(--warn);margin-bottom:2px}
+.warn-s{font-size:11px;color:var(--muted)}
+
+.profile-card{display:none;align-items:flex-start;gap:10px;background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:11px;margin-bottom:12px}
+.profile-card.show{display:flex}
+.av{width:36px;height:36px;border-radius:50%;background:var(--s2);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--muted);flex-shrink:0}
+.pinfo{flex:1;min-width:0}
+.pname{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prole{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;border:1px solid}
+.tag-src{background:rgba(79,110,247,.12);color:#8fa8ff;border-color:rgba(79,110,247,.2)}
+.tag-hist{background:rgba(34,211,160,.1);color:#34d399;border-color:rgba(34,211,160,.2)}
+.tag-lang{background:rgba(245,158,11,.1);color:#fbbf24;border-color:rgba(245,158,11,.2)}
+
+.gen-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 4px 16px var(--glow)}
+.gen-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--glow)}
+.gen-btn:active{transform:translateY(0)}
+.gen-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+
+.loading{display:none;flex-direction:column;align-items:center;gap:10px;padding:28px 0 16px}
+.loading.show{display:flex}
+.spin{width:26px;height:26px;border:2px solid var(--b1);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-t{font-size:12px;color:var(--muted)}
+.load-s{font-size:10px;color:var(--dim);font-family:var(--mono)}
+
+.err-box{display:none;background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:8px;padding:9px 12px;margin-top:10px}
+.err-box.show{display:block}
+.err-t{font-size:11px;font-weight:600;color:var(--err);margin-bottom:2px}
+.err-s{font-size:11px;color:var(--muted);line-height:1.5}
+
+.opts-hdr{font-size:10px;font-weight:500;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin:13px 0 7px}
+#options-container{display:none}
+
+.opt-card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color .15s}
+.opt-card:hover{border-color:var(--b2)}
+.opt-card.editing{border-color:var(--accent);box-shadow:0 0 0 2px var(--glow)}
+.opt-head{padding:10px 12px 0}
+.opt-label{font-size:10px;font-weight:500;color:var(--accent);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.opt-body{padding:0 12px 10px}
+.opt-text{font-size:12px;color:var(--text);line-height:1.7;white-space:pre-wrap;cursor:text}
+.opt-edit{display:none;width:100%;background:var(--s2);border:none;border-top:1px solid var(--b1);padding:10px 12px;color:var(--text);font-family:var(--font);font-size:12px;line-height:1.7;resize:none;outline:none;min-height:80px}
+.opt-card.editing .opt-edit{display:block}
+.opt-card.editing .opt-body{display:none}
+.opt-foot{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid var(--b0);background:var(--s2)}
+.foot-left{display:flex;gap:5px}
+.foot-right{display:flex;gap:5px}
+.act-btn{display:flex;align-items:center;gap:4px;background:none;border:1px solid var(--b1);border-radius:6px;color:var(--muted);font-size:11px;font-family:var(--font);padding:4px 9px;cursor:pointer;transition:all .15s;font-weight:500}
+.act-btn:hover{border-color:var(--b2);color:var(--text)}
+.act-btn.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.act-btn.edit-btn:hover{border-color:var(--warn);color:var(--warn)}
+.act-btn.save-edit-btn{border-color:var(--ok);color:var(--ok)}
+.act-btn.save-edit-btn:hover{background:rgba(34,211,160,.1)}
+.act-btn.cancel-edit-btn:hover{border-color:var(--err);color:var(--err)}
+.act-btn.copied{border-color:var(--ok);color:var(--ok)}
+.fb-badge{font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(34,211,160,.1);color:var(--ok);border:1px solid rgba(34,211,160,.2);font-weight:500}
+
+.hr{border:none;border-top:1px solid var(--b1);margin:10px 0}
+.regen-btn{width:100%;padding:8px;background:none;border:1px solid var(--b1);border-radius:7px;color:var(--muted);font-size:11px;font-family:var(--font);cursor:pointer;transition:all .15s}
+.regen-btn:hover{border-color:var(--b2);color:var(--text)}
+
+#feedback-panel{display:none;margin-top:14px}
+#feedback-panel.show{display:block}
+.fb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.fb-title{font-size:11px;font-weight:500;color:var(--ok);display:flex;align-items:center;gap:6px}
+.fb-count{font-size:10px;background:rgba(34,211,160,.15);color:var(--ok);padding:2px 7px;border-radius:10px}
+.fb-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto}
+.fb-item{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:9px 11px}
+.fb-item-sum{font-size:11px;color:var(--text);margin-bottom:5px;font-weight:500}
+.fb-rules{display:flex;flex-direction:column;gap:3px}
+.fb-rule{font-size:10px;color:var(--muted);display:flex;gap:6px}
+.fb-rule::before{content:"→";color:var(--dim);flex-shrink:0}
+.export-btn{width:100%;margin-top:10px;padding:9px;background:rgba(34,211,160,.1);border:1px solid rgba(34,211,160,.3);border-radius:8px;color:var(--ok);font-size:12px;font-weight:500;font-family:var(--font);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.export-btn:hover{background:rgba(34,211,160,.18)}
+.clear-fb-btn{background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;font-family:var(--font);padding:2px 4px;border-radius:4px;transition:color .15s}
+.clear-fb-btn:hover{color:var(--err)}
+.analyzing{display:none;align-items:center;gap:6px;padding:6px 10px;background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.2);border-radius:7px;margin:0 12px 10px;font-size:11px;color:var(--accent)}
+.analyzing.show{display:flex}
+.mini-spin{width:12px;height:12px;border:1px solid var(--b1);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-mark">S</div>
+    <div>
+      <div class="logo-label">SHIELD Prospector</div>
+      <div class="logo-sub">by David Elias · v3</div>
+    </div>
+  </div>
+  <div class="hdr-actions">
+    <button class="btn-sm" id="fb-toggle-btn">📚 <span id="fb-count-badge"></span></button>
+    <button class="btn-sm" id="settings-toggle">⚙ Config</button>
+  </div>
+</div>
+
+<div id="settings-panel">
+  <div class="field-lbl">Anthropic API Key</div>
+  <input type="password" class="inp" id="api-key-input" placeholder="sk-ant-api03-..."/>
+  <button class="save-btn" id="save-key-btn">Salvar chave</button>
+</div>
+
+<div class="main">
+  <div class="not-li" id="not-linkedin">
+    <div class="not-li-icon">🔗</div>
+    <div class="not-li-t">Abra um perfil no LinkedIn</div>
+    <div class="not-li-s">Navegue até um perfil no LinkedIn ou Sales Navigator para gerar mensagens.</div>
+  </div>
+
+  <div id="li-content">
+    <div class="warn-box" id="no-key-warn">
+      <div class="warn-t">API Key não configurada</div>
+      <div class="warn-s">Clique em "Config" e adicione sua chave da Anthropic.</div>
+    </div>
+
+    <div class="profile-card" id="profile-card">
+      <div class="av" id="p-avatar">?</div>
+      <div class="pinfo">
+        <div class="pname" id="p-name">—</div>
+        <div class="prole" id="p-role">—</div>
+        <div class="ptags" id="p-tags"></div>
+      </div>
+    </div>
+
+    <button class="gen-btn" id="generate-btn" disabled>
+      <span>✦</span><span>Gerar mensagens</span>
+    </button>
+
+    <div class="loading" id="loading">
+      <div class="spin"></div>
+      <div class="load-t">Analisando perfil...</div>
+      <div class="load-s" id="load-step">lendo dados do LinkedIn</div>
+    </div>
+
+    <div class="err-box" id="err-box">
+      <div class="err-t">Erro</div>
+      <div class="err-s" id="err-msg"></div>
+    </div>
+
+    <div id="options-container">
+      <div class="opts-hdr">Escolha uma opção — clique em ✏ para editar</div>
+      <div id="options-list"></div>
+      <hr class="hr">
+      <button class="regen-btn" id="regen-btn">↻ Gerar novas opções</button>
+    </div>
+
+    <div id="feedback-panel">
+      <div class="fb-header">
+        <div class="fb-title">
+          ✦ Aprendizados das suas edições
+          <span class="fb-count" id="fb-item-count">0</span>
+        </div>
+        <button class="clear-fb-btn" id="clear-fb-btn">✕ limpar</button>
+      </div>
+      <div class="fb-list" id="fb-list"></div>
+      <button class="export-btn" id="export-btn">↓ Exportar JSON para enviar ao Claude</button>
+    </div>
+  </div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
